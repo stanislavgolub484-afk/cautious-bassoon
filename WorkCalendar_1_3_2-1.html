@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#6658e8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Рабочий календарь 1.3.2</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--text:#22283a;--muted:#788398;--line:#e6eaf2;--accent:#6658e8;--input:#f7f8fc}
+body.dark{--bg:#111522;--card:#1d2435;--text:#eef0fa;--muted:#a4adc0;--line:#343c50;--accent:#958aff;--input:#293146}
+*{box-sizing:border-box}
+html{width:100%;-webkit-text-size-adjust:100%;touch-action:pan-y}
+body{margin:0;min-height:100dvh;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,sans-serif;overflow-x:hidden;overscroll-behavior-y:contain;touch-action:pan-y;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;touch-action:manipulation}
+input,select{touch-action:manipulation}
+h1,h2,h3,p{margin-top:0}
+.app{max-width:1160px;margin:auto;padding:max(16px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:44px;height:44px;display:grid;place-items:center;background:linear-gradient(135deg,#6658e8,#aaa0ff);color:white;border-radius:14px;font-size:24px;flex-shrink:0}
+h1{font-size:clamp(20px,3vw,29px);line-height:1.2;margin:0}
+.subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+.iconbtn,.secondary{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-height:42px}
+.iconbtn{position:relative}
+.count{position:absolute;right:-4px;top:-5px;background:#e95168;color:white;border-radius:20px;padding:1px 5px;font-size:10px}
+.layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,.85fr);gap:18px;align-items:start}
+.side{display:grid;gap:16px;min-width:0}
+.panel{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:19px;box-shadow:0 10px 32px #2029440b}
+.calendarhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.month{font-size:20px;font-weight:750}
+.nav{display:flex;gap:7px}
+.nav button{width:37px;height:37px;border-radius:10px;background:var(--input);color:var(--text);font-size:22px}
+.weekdays,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.weekdays div{text-align:center;color:var(--muted);font-size:11px;font-weight:700;padding:7px 0}
+.day{background:var(--card);border:1px solid var(--line);border-radius:11px;color:var(--text);padding:7px 5px;min-width:0;min-height:77px;text-align:left;overflow:hidden}
+.day.other{opacity:.35}
+.day.selected{outline:2px solid var(--accent)}
+.day.today .num{background:var(--accent);color:#fff;border-radius:6px;padding:2px 5px}
+.num{font-size:13px;font-weight:700}
+.tag{display:block;margin-top:7px;padding:3px 4px;border-radius:6px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.hoursmark{font-size:10px;color:var(--muted);margin-top:4px}
+.weekend{background:#e7ebf3;color:#57637a}
+.vacation{background:#d7f5e5;color:#18794f}
+.sick{background:#ffe0e4;color:#ac3450}
+.early{background:#fff0c8;color:#906010}
+.afternoon{background:#e8e1ff;color:#5c49b5}
+.night{background:#dce8ff;color:#365bb0}
+body.dark .weekend{background:#394258;color:#d6dfed}
+body.dark .vacation{background:#20533f;color:#a5e9c4}
+body.dark .sick{background:#582e3a;color:#ffb8c6}
+body.dark .early{background:#56451e;color:#ffe1a0}
+body.dark .afternoon{background:#40346e;color:#d7caff}
+body.dark .night{background:#283e6b;color:#b8d0ff}
+.legend{display:flex;flex-wrap:wrap;gap:8px 13px;margin-top:15px;font-size:11px;color:var(--muted)}
+.sectiontitle{font-size:16px;font-weight:750;margin-bottom:12px}
+.selecteddate,.hint{font-size:12px;color:var(--muted)}
+.selecteddate{margin-bottom:13px}
+.field{margin-bottom:12px;min-width:0}
+.field label{display:block;font-size:12px;font-weight:650;color:var(--muted);margin-bottom:6px;line-height:1.4;overflow-wrap:anywhere}
+.field input,.field select{display:block;width:100%;min-width:0;max-width:100%;min-height:44px;border-radius:10px;padding:10px 12px;background:var(--input);border:1px solid var(--line);color:var(--text);outline:none}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.primary{width:100%;padding:12px;min-height:45px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#988bff);color:#fff;font-weight:750}
+.delete{width:100%;padding:10px;margin-top:7px;background:transparent;color:#d65770}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--input);border-radius:12px;padding:12px;min-width:0}
+.stat strong{display:block;font-size:21px;overflow-wrap:anywhere}
+.stat small{font-size:11px;color:var(--muted)}
+.progress{height:7px;background:var(--line);border-radius:10px;overflow:hidden;margin:14px 0 8px}
+.progress>div{height:100%;width:0;background:var(--accent);transition:width .2s}
+.overlay{position:fixed;inset:0;z-index:10;background:#111827a6;backdrop-filter:blur(5px);display:grid;place-items:center;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+.modal{width:min(100%,670px);height:min(90dvh,800px);max-height:calc(100dvh - 16px);min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:16px}
+.modalhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.modalhead h2{margin:0;font-size:18px;overflow-wrap:anywhere}
+.modalbody{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 2px}
+.modalfoot{flex-shrink:0;padding-top:12px;border-top:1px solid var(--line);background:var(--card)}
+.settingsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px}
+.settingsgrid>*{min-width:0}
+.notice{border:1px solid var(--line);border-radius:11px;padding:12px;margin-bottom:9px;background:var(--input);overflow-wrap:anywhere}
+.notice small{display:block;color:var(--muted);margin-top:4px}
+body.modalopen{overflow:hidden}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.panel{padding:15px}.day{min-height:69px}.actions{width:100%;justify-content:space-between}}
+@media(max-width:600px){.modal{width:100%;height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);max-height:none;padding:14px}.settingsgrid{grid-template-columns:minmax(0,1fr)}.modal .field label{font-size:13px}.modal .field input,.modal .field select{font-size:16px}.weekdays,.days{gap:4px}.day{min-height:64px;padding:5px 3px}.tag{font-size:8px}.hoursmark{font-size:9px}.month{font-size:18px}}
+@media(max-width:360px){.panel{padding:11px}.weekdays,.days{gap:3px}.day{min-height:58px}.tag{font-size:7px}.iconbtn{padding:8px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div class="brand"><div class="logo">▦</div><div><h1 id="title">Рабочий календарь</h1><div class="subtitle" id="subtitle">Смены и учёт времени · 1.3.2</div></div></div>
+ <div class="actions">
+  <button class="iconbtn" id="todayBtn">📅 <span id="todayText">Сегодня</span></button>
+  <button class="iconbtn" id="notificationsBtn">🔔<span class="count" id="badge" hidden>0</span></button>
+  <button class="iconbtn" id="updatesBtn">🆕</button>
+  <button class="iconbtn" id="settingsBtn">⚙️</button>
+  <button class="iconbtn" id="themeBtn">🌙</button>
+ </div>
+</header>
+<div class="layout">
+ <main class="panel">
+  <div class="calendarhead"><div class="month" id="monthTitle"></div><div class="nav"><button id="prev" aria-label="Предыдущий месяц">‹</button><button id="next" aria-label="Следующий месяц">›</button></div></div>
+  <div class="weekdays" id="weekdays"></div><div class="days" id="days"></div><div class="legend" id="legend"></div>
+ </main>
+ <aside class="side">
+  <section class="panel">
+   <h2 class="sectiontitle" id="entryTitle">Запись на день</h2><div class="selecteddate" id="selectedDate"></div>
+   <div class="field"><label for="type" id="typeLabel">Тип дня</label><select id="type"></select></div>
+   <div class="field"><label for="hours" id="hoursLabel">Часы</label><input id="hours" type="number" min="0" max="24" step="0.5" placeholder="8"></div>
+   <div class="field"><label for="note" id="noteLabel">Заметка</label><input id="note" maxlength="80"></div>
+   <button class="primary" id="save">💾 Сохранить</button><button class="delete" id="clear">🗑️ Удалить запись</button>
+  </section>
+  <section class="panel">
+   <h2 class="sectiontitle" id="statsTitle">Статистика месяца</h2>
+   <div class="stats">
+    <div class="stat"><strong id="totalHours">0</strong><small id="hoursStat">Рабочие часы</small></div>
+    <div class="stat"><strong id="workDays">0</strong><small id="workStat">Смены</small></div>
+    <div class="stat"><strong id="offDays">0</strong><small id="offStat">Выходные</small></div>
+    <div class="stat"><strong id="absenceDays">0</strong><small id="absenceStat">Отпуск / больничный</small></div>
+    <div class="stat" style="grid-column:1/-1"><strong id="salary">0 Kč</strong><small id="salaryStat">Расчётная зарплата</small></div>
+   </div>
+   <div class="progress"><div id="progressBar"></div></div><div class="hint" id="average"></div>
+  </section>
+ </aside>
+</div>
+</div>
+
+<div class="overlay" id="settingsOverlay" hidden>
+ <section class="panel modal" role="dialog" aria-modal="true" aria-labelledby="settingsHeading">
+  <div class="modalhead"><h2 id="settingsHeading">⚙️ Настройки</h2><button class="iconbtn" data-close="settingsOverlay">✕</button></div>
+  <div class="modalbody">
+   <div class="settingsgrid">
+    <div class="field"><label for="language" id="languageLabel">🌐 Язык</label><select id="language"><option value="ru">🇷🇺 Русский</option><option value="cs">🇨🇿 Čeština</option><option value="en">🇬🇧 English</option><option value="uk">🇺🇦 Українська</option></select></div>
+    <div class="field"><label for="currency" id="currencyLabel">💱 Валюта</label><select id="currency"><option value="₽">🇷🇺 Рубли (₽)</option><option value="Kč">🇨🇿 Кроны (Kč)</option><option value="₴">🇺🇦 Гривны (₴)</option></select></div>
+    <div class="field"><label for="rate" id="rateLabel">💰 Почасовая ставка</label><input id="rate" type="number" min="0" step="0.01"></div>
+    <div class="field"><label for="monthlyTarget" id="targetLabel">🎯 План часов в месяц</label><input id="monthlyTarget" type="number" min="0" step="1"></div>
+    <div class="field"><label for="weekStart" id="weekLabel">📆 Первый день недели</label><select id="weekStart"><option value="1">Понедельник</option><option value="0">Воскресенье</option></select></div>
+    <div class="field"><label for="defaultHours" id="defaultLabel">⏱️ Стандартная смена</label><input id="defaultHours" type="number" min="1" max="24" step="0.5"></div>
+    <div class="field"><label for="salaryIncludeLeave" id="leaveLabel">🧾 Оплачивать отпуск / больничный</label><select id="salaryIncludeLeave"><option value="no">Нет</option><option value="yes">Да, по стандартным часам</option></select></div>
+   </div>
+   <p class="hint" id="settingsHint">Расчёт зарплаты ориентировочный. Налоги и доплаты не учитываются.</p>
+  </div>
+  <div class="modalfoot"><button class="primary" id="saveSettings">💾 Сохранить настройки</button></div>
+ </section>
+</div>
+
+<div class="overlay" id="notificationsOverlay" hidden>
+ <section class="panel modal" role="dialog" aria-modal="true">
+  <div class="modalhead"><h2 id="notificationsHeading">🔔 Уведомления</h2><button class="iconbtn" data-close="notificationsOverlay">✕</button></div>
+  <div class="modalbody">
+   <div class="field"><label for="reminderEnabled">Напоминания о сменах</label><select id="reminderEnabled"><option value="off">Выключены</option><option value="on">Включены</option></select></div>
+   <div class="field"><label for="reminderTime">Время напоминания</label><input id="reminderTime" type="time"></div>
+   <button class="secondary" id="enableBrowserNotifications">Разрешить уведомления браузера</button>
+   <p class="hint">Напоминания работают, пока календарь открыт. Для фоновых push-уведомлений нужна серверная поддержка.</p>
+   <h3>История</h3><div id="notificationList"></div><button class="secondary" id="clearNotifications">Очистить историю</button>
+  </div>
+ </section>
+</div>
+
+<div class="overlay" id="updatesOverlay" hidden>
+ <section class="panel modal" role="dialog" aria-modal="true" aria-labelledby="updatesHeading">
+  <div class="modalhead"><h2 id="updatesHeading">🆕 Версии приложения</h2><button class="iconbtn" data-close="updatesOverlay">✕</button></div>
+  <div class="modalbody">
+   <div class="notice"><strong>Текущая версия: 1.3.2</strong><small>Добавлена автоматическая проверка новых релизов GitHub при запуске. Записи и настройки календаря остаются в локальном хранилище.</small></div>
+   <div class="field"><label for="githubRepo">GitHub-репозиторий (owner/repo)</label><input id="githubRepo" type="text" placeholder="username/work-calendar" autocomplete="off"></div>
+   <button class="secondary" id="saveGithubRepo">Сохранить репозиторий</button>
+   <div class="notice" style="margin-top:12px"><strong>1.3.1</strong><small>Мобильная версия, календарь смен, статистика, зарплата и настройки.</small></div>
+   <div class="notice"><strong>1.3.0</strong><small>Настройки, уведомления и история версий.</small></div>
+   <div class="notice"><strong>1.2.0</strong><small>Языки и валюты.</small></div>
+   <div class="notice"><strong>1.1.0</strong><small>Зарплата, часы и смены.</small></div>
+   <div class="notice"><strong>1.0.0</strong><small>Первый календарь.</small></div>
+   <button class="primary" id="checkUpdates">Проверить версию</button>
+   <p class="hint" id="versionStatus" role="status">Проверка обновлений при запуске включена, если указан GitHub-репозиторий.</p>
+   <a id="releaseLink" class="secondary" href="#" target="_blank" rel="noopener" hidden style="display:block;text-align:center;text-decoration:none;margin-top:10px">⬇️ Открыть страницу обновления</a>
+  </div>
+ </section>
+</div>
+
+<script>
+'use strict';
+const APP_VERSION='1.3.2';
+const GITHUB_REPO_KEY='work-calendar-github-repo';
+const $=id=>document.getElementById(id);
+const types=['weekend','vacation','sick','early','afternoon','night'];
+const icons=['☕','🏖️','🩺','🌅','☀️','🌙'];
+const locales={ru:'ru-RU',cs:'cs-CZ',en:'en-GB',uk:'uk-UA'};
+const words={
+ru:{title:'Рабочий календарь',subtitle:'Смены, выходные и учёт времени',today:'Сегодня',week:['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],types:['Выходной','Отпуск','Больничный','Ранняя смена','Послеобеденная','Ночная смена'],entry:'Запись на день',type:'Тип дня / смены',hours:'Отработано часов',note:'Заметка',save:'Сохранить день',del:'Удалить запись',stats:'Статистика месяца',hoursStat:'Рабочие часы',workStat:'Рабочие смены',offStat:'Выходные',absenceStat:'Отпуск / больничный',salaryStat:'Расчётная зарплата',average:'Среднее за смену',settings:'Настройки',language:'Язык',currency:'Валюта',rate:'Почасовая ставка',target:'План часов в месяц',weekStart:'Первый день недели',defaultHours:'Стандартная смена (часов)',leave:'Учитывать отпуск / больничный в зарплате',saveSettings:'Сохранить настройки',settingsHint:'Расчёт зарплаты ориентировочный: без налогов и доплат.',none:'— Не выбрано —',choose:'Выбери тип дня.',invalid:'Часы должны быть от 0 до 24.',unit:'ч'},
+cs:{title:'Pracovní kalendář',subtitle:'Směny, volno a pracovní doba',today:'Dnes',week:['Po','Út','St','Čt','Pá','So','Ne'],types:['Volno','Dovolená','Nemocenská','Ranní směna','Odpolední směna','Noční směna'],entry:'Záznam dne',type:'Typ dne / směny',hours:'Odpracované hodiny',note:'Poznámka',save:'Uložit den',del:'Smazat záznam',stats:'Měsíční statistika',hoursStat:'Odpracované hodiny',workStat:'Pracovní směny',offStat:'Volné dny',absenceStat:'Dovolená / nemocenská',salaryStat:'Odhadovaná mzda',average:'Průměr na směnu',settings:'Nastavení',language:'Jazyk',currency:'Měna',rate:'Hodinová sazba',target:'Měsíční plán hodin',weekStart:'První den týdne',defaultHours:'Standardní směna (hodiny)',leave:'Započítat dovolenou / nemocenskou do mzdy',saveSettings:'Uložit nastavení',settingsHint:'Výpočet mzdy je orientační, bez daní a příplatků.',none:'— Nevybráno —',choose:'Vyber typ dne.',invalid:'Hodiny musí být mezi 0 a 24.',unit:'h'},
+en:{title:'Work Calendar',subtitle:'Shifts, days off and working hours',today:'Today',week:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],types:['Day off','Vacation','Sick leave','Early shift','Afternoon shift','Night shift'],entry:'Day entry',type:'Day / shift type',hours:'Hours worked',note:'Note',save:'Save day',del:'Delete entry',stats:'Monthly statistics',hoursStat:'Hours worked',workStat:'Work shifts',offStat:'Days off',absenceStat:'Vacation / sick leave',salaryStat:'Estimated salary',average:'Average per shift',settings:'Settings',language:'Language',currency:'Currency',rate:'Hourly rate',target:'Monthly hours target',weekStart:'First day of week',defaultHours:'Standard shift (hours)',leave:'Include vacation / sick leave in pay',saveSettings:'Save settings',settingsHint:'Salary is an estimate, excluding taxes and bonuses.',none:'— Not selected —',choose:'Choose a day type.',invalid:'Hours must be between 0 and 24.',unit:'h'},
+uk:{title:'Робочий календар',subtitle:'Зміни, вихідні та робочий час',today:'Сьогодні',week:['Пн','Вт','Ср','Чт','Пт','Сб','Нд'],types:['Вихідний','Відпустка','Лікарняний','Рання зміна','Післяобідня зміна','Нічна зміна'],entry:'Запис на день',type:'Тип дня / зміни',hours:'Відпрацьовані години',note:'Нотатка',save:'Зберегти день',del:'Видалити запис',stats:'Статистика місяця',hoursStat:'Робочі години',workStat:'Робочі зміни',offStat:'Вихідні',absenceStat:'Відпустка / лікарняний',salaryStat:'Розрахункова зарплата',average:'Середнє за зміну',settings:'Налаштування',language:'Мова',currency:'Валюта',rate:'Погодинна ставка',target:'План годин на місяць',weekStart:'Перший день тижня',defaultHours:'Стандартна зміна (години)',leave:'Враховувати відпустку / лікарняний в зарплаті',saveSettings:'Зберегти налаштування',settingsHint:'Зарплата орієнтовна, без податків і доплат.',none:'— Не вибрано —',choose:'Вибери тип дня.',invalid:'Години мають бути від 0 до 24.',unit:'год'}
+};
+const load=(k,fallback)=>{try{return JSON.parse(localStorage.getItem(k))??fallback}catch{return fallback}};
+const store=(k,value)=>localStorage.setItem(k,JSON.stringify(value));
+let records=load('work-calendar-v1',{});
+let settings={language:'ru',currency:'Kč',rate:0,monthlyTarget:160,weekStart:1,defaultHours:8,salaryIncludeLeave:'no',...load('work-calendar-settings-v1',{})};
+let reminders={enabled:'off',time:'08:00',...load('work-calendar-reminders-v1',{})};
+let notifications=load('work-calendar-notifications-v1',[]);
+let selected=new Date(),current=new Date(selected.getFullYear(),selected.getMonth(),1);
+const tr=()=>words[settings.language]||words.ru;
+const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const locale=()=>locales[settings.language]||'ru-RU';
+
+function renderLanguage(){
+ const t=tr();document.documentElement.lang=settings.language;
+ const ids={title:t.title,subtitle:t.subtitle+' · '+APP_VERSION,todayText:t.today,entryTitle:t.entry,typeLabel:t.type,hoursLabel:t.hours,noteLabel:t.note,save:'💾 '+t.save,clear:'🗑️ '+t.del,statsTitle:t.stats,hoursStat:t.hoursStat,workStat:t.workStat,offStat:t.offStat,absenceStat:t.absenceStat,salaryStat:t.salaryStat,settingsHeading:'⚙️ '+t.settings,languageLabel:'🌐 '+t.language,currencyLabel:'💱 '+t.currency,rateLabel:'💰 '+t.rate,targetLabel:'🎯 '+t.target,weekLabel:'📆 '+t.weekStart,defaultLabel:'⏱️ '+t.defaultHours,leaveLabel:'🧾 '+t.leave,saveSettings:'💾 '+t.saveSettings,settingsHint:t.settingsHint};
+ Object.entries(ids).forEach(([id,v])=>$(id).textContent=v);
+ const old=$('type').value;
+ $('type').replaceChildren(new Option(t.none,''),...types.map((v,i)=>new Option(icons[i]+' '+t.types[i],v)));
+ $('type').value=old;
+ $('legend').replaceChildren(...types.map((v,i)=>{const s=document.createElement('span');s.textContent=icons[i]+' '+t.types[i];return s}));
+ render();
+}
+function render(){
+ const t=tr(),month=current.toLocaleDateString(locale(),{month:'long',year:'numeric'});
+ $('monthTitle').textContent=month[0].toUpperCase()+month.slice(1);
+ const start=Number(settings.weekStart);
+ const order=start===0?[6,0,1,2,3,4,5]:[0,1,2,3,4,5,6];
+ $('weekdays').replaceChildren(...order.map(i=>{const d=document.createElement('div');d.textContent=t.week[i];return d}));
+ const first=new Date(current.getFullYear(),current.getMonth(),1),offset=(first.getDay()-start+7)%7,startDate=new Date(first);
+ startDate.setDate(1-offset);
+ const cells=[];
+ for(let i=0;i<42;i++){
+  const d=new Date(startDate);d.setDate(startDate.getDate()+i);
+  const k=dateKey(d),r=records[k],button=document.createElement('button');
+  button.type='button';button.className='day'+(d.getMonth()!==current.getMonth()?' other':'')+(k===dateKey(selected)?' selected':'')+(k===dateKey(new Date())?' today':'');
+  const num=document.createElement('span');num.className='num';num.textContent=d.getDate();button.append(num);
+  if(r&&types.includes(r.type)){
+   const idx=types.indexOf(r.type),tag=document.createElement('span');tag.className='tag '+r.type;tag.textContent=icons[idx]+' '+t.types[idx];button.append(tag);
+   if(r.hours!==''&&r.hours!=null){const h=document.createElement('div');h.className='hoursmark';h.textContent=r.hours+' '+t.unit;button.append(h)}
+  }
+  button.addEventListener('click',()=>{selected=d;current=new Date(d.getFullYear(),d.getMonth(),1);loadSelected();render()});cells.push(button);
+ }
+ $('days').replaceChildren(...cells);$('selectedDate').textContent=selected.toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long',year:'numeric'});updateStats();
+}
+function loadSelected(){
+ const r=records[dateKey(selected)]||{};$('type').value=r.type||'';$('hours').value=r.hours??'';$('note').value=r.note||'';
+}
+function updateStats(){
+ const prefix=`${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-`;
+ const monthEntries=Object.entries(records).filter(([k])=>k.startsWith(prefix)).map(([,v])=>v);
+ const shifts=monthEntries.filter(r=>['early','afternoon','night'].includes(r.type));
+ const hours=shifts.reduce((s,r)=>s+(Number(r.hours)||0),0);
+ const paidLeave=settings.salaryIncludeLeave==='yes'?monthEntries.filter(r=>r.type==='vacation'||r.type==='sick').reduce((s,r)=>s+(r.hours===''||r.hours==null?Number(settings.defaultHours)||8:Number(r.hours)||0),0):0;
+ $('totalHours').textContent=hours+' '+tr().unit;$('workDays').textContent=shifts.length;
+ $('offDays').textContent=monthEntries.filter(r=>r.type==='weekend').length;
+ $('absenceDays').textContent=monthEntries.filter(r=>r.type==='vacation'||r.type==='sick').length;
+ $('salary').textContent=((hours+paidLeave)*(Number(settings.rate)||0)).toLocaleString(locale(),{maximumFractionDigits:2})+' '+settings.currency;
+ $('average').textContent=tr().average+': '+(shifts.length?(hours/shifts.length).toFixed(1):'0')+' '+tr().unit;
+ $('progressBar').style.width=Math.min(100,100*hours/(Number(settings.monthlyTarget)||160))+'%';
+}
+$('save').onclick=()=>{
+ const type=$('type').value,h=$('hours').value.trim();
+ if(!types.includes(type)){alert(tr().choose);return}
+ if(h!==''&&(!Number.isFinite(Number(h))||Number(h)<0||Number(h)>24)){alert(tr().invalid);return}
+ records[dateKey(selected)]={type,hours:h===''?'':Number(h),note:$('note').value.trim()};
+ store('work-calendar-v1',records);render();
+};
+$('clear').onclick=()=>{delete records[dateKey(selected)];store('work-calendar-v1',records);loadSelected();render()};
+function changeMonth(delta){current=new Date(current.getFullYear(),current.getMonth()+delta,1);selected=new Date(current.getFullYear(),current.getMonth(),1);loadSelected();render()}
+$('prev').onclick=()=>changeMonth(-1);$('next').onclick=()=>changeMonth(1);
+$('todayBtn').onclick=()=>{selected=new Date();current=new Date(selected.getFullYear(),selected.getMonth(),1);loadSelected();render()};
+$('themeBtn').onclick=()=>{
+ document.body.classList.toggle('dark');const dark=document.body.classList.contains('dark');
+ $('themeBtn').textContent=dark?'☀️':'🌙';localStorage.setItem('work-calendar-theme',dark?'dark':'light');
+};
+if(localStorage.getItem('work-calendar-theme')==='dark'){$('themeBtn').textContent='☀️';document.body.classList.add('dark')}
+function openModal(id){$(id).hidden=false;document.body.classList.add('modalopen')}
+function closeModal(id){$(id).hidden=true;if([...document.querySelectorAll('.overlay')].every(el=>el.hidden))document.body.classList.remove('modalopen')}
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
+document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)closeModal(el.id)}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay:not([hidden])').forEach(el=>closeModal(el.id))});
+$('settingsBtn').onclick=()=>{
+ ['language','currency','rate','monthlyTarget','weekStart','defaultHours','salaryIncludeLeave'].forEach(id=>$(id).value=settings[id]);openModal('settingsOverlay');
+};
+$('saveSettings').onclick=()=>{
+ const rate=Number($('rate').value),target=Number($('monthlyTarget').value),defaultHours=Number($('defaultHours').value);
+ if(!Number.isFinite(rate)||rate<0||!Number.isFinite(target)||target<0||!Number.isFinite(defaultHours)||defaultHours<1||defaultHours>24){alert('Проверь числовые значения в настройках.');return}
+ settings={...settings,language:$('language').value,currency:$('currency').value,rate,monthlyTarget:target,weekStart:Number($('weekStart').value),defaultHours,salaryIncludeLeave:$('salaryIncludeLeave').value};
+ store('work-calendar-settings-v1',settings);renderLanguage();closeModal('settingsOverlay');
+};
+function renderNotifications(){
+ const list=$('notificationList');
+ list.replaceChildren(...notifications.slice(0,30).map(n=>{
+  const box=document.createElement('div');box.className='notice';const title=document.createElement('strong');title.textContent=n.title;
+  const msg=document.createElement('div');msg.textContent=n.message;const date=document.createElement('small');date.textContent=new Date(n.date).toLocaleString(locale());
+  box.append(title,msg,date);return box;
+ }));
+ if(!notifications.length)list.textContent='Уведомлений пока нет.';
+ const unread=notifications.filter(n=>!n.read).length;$('badge').hidden=!unread;$('badge').textContent=unread>9?'9+':unread;
+}
+function notify(title,message){
+ notifications.unshift({title,message,date:new Date().toISOString(),read:false});notifications=notifications.slice(0,30);
+ store('work-calendar-notifications-v1',notifications);renderNotifications();
+ if('Notification'in window&&Notification.permission==='granted'){try{new Notification(title,{body:message})}catch{}}
+}
+$('notificationsBtn').onclick=()=>{
+ notifications.forEach(n=>n.read=true);store('work-calendar-notifications-v1',notifications);renderNotifications();
+ $('reminderEnabled').value=reminders.enabled;$('reminderTime').value=reminders.time;openModal('notificationsOverlay');
+};
+$('reminderEnabled').onchange=()=>{reminders.enabled=$('reminderEnabled').value;store('work-calendar-reminders-v1',reminders)};
+$('reminderTime').onchange=()=>{reminders.time=$('reminderTime').value||'08:00';store('work-calendar-reminders-v1',reminders)};
+$('enableBrowserNotifications').onclick=async()=>{
+ if(!('Notification'in window)){notify('Уведомления','Браузер не поддерживает системные уведомления.');return}
+ try{const permission=await Notification.requestPermission();notify('Уведомления',permission==='granted'?'Разрешение получено.':'Разрешение не получено.')}catch{notify('Уведомления','Не удалось запросить разрешение.')}
+};
+$('clearNotifications').onclick=()=>{notifications=[];store('work-calendar-notifications-v1',notifications);renderNotifications()};
+
+function compareVersions(a,b){
+ const aa=String(a).replace(/^v/i,'').split('.').map(x=>parseInt(x,10)||0);
+ const bb=String(b).replace(/^v/i,'').split('.').map(x=>parseInt(x,10)||0);
+ for(let i=0;i<Math.max(aa.length,bb.length);i++){const x=aa[i]||0,y=bb[i]||0;if(x>y)return 1;if(x<y)return -1}
+ return 0;
+}
+function setUpdateStatus(message){$('versionStatus').textContent=message}
+async function checkForUpdates(showStatus=true){
+ const repo=(localStorage.getItem(GITHUB_REPO_KEY)||$('githubRepo').value||'').trim();
+ $('releaseLink').hidden=true;
+ if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){
+  setUpdateStatus('Укажи GitHub-репозиторий в формате owner/repo. Например: username/work-calendar.');
+  return;
+ }
+ if(showStatus)setUpdateStatus('Проверяем GitHub Releases…');
+ try{
+  const response=await fetch(`https://api.github.com/repos/${repo}/releases/latest`,{
+   headers:{Accept:'application/vnd.github+json'},cache:'no-store'
+  });
+  if(response.status===404)throw new Error('Релиз не найден. Опубликуй Release с тегом, например v1.3.3.');
+  if(!response.ok)throw new Error('GitHub ответил: '+response.status);
+  const release=await response.json(),latest=(release.tag_name||'').replace(/^v/i,'');
+  if(!latest)throw new Error('У релиза отсутствует tag_name.');
+  if(compareVersions(latest,APP_VERSION)>0){
+   setUpdateStatus(`Доступна новая версия ${latest}. Нажми ссылку ниже, чтобы открыть GitHub Release.`);
+   $('releaseLink').href=release.html_url;$('releaseLink').hidden=false;
+  }else{
+   setUpdateStatus(`Установлена последняя версия (${APP_VERSION}). Последний релиз GitHub: ${latest}.`);
+  }
+ }catch(error){
+  setUpdateStatus('Не удалось проверить обновления: '+error.message+' Проверь интернет и имя репозитория.');
+ }
+}
+$('updatesBtn').onclick=()=>{ $('githubRepo').value=localStorage.getItem(GITHUB_REPO_KEY)||'';openModal('updatesOverlay') };
+$('saveGithubRepo').onclick=()=>{
+ const repo=$('githubRepo').value.trim();
+ if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){alert('Введи репозиторий в формате owner/repository.');return}
+ localStorage.setItem(GITHUB_REPO_KEY,repo);checkForUpdates(true);
+};
+$('checkUpdates').onclick=()=>checkForUpdates(true);
+
+function checkReminder(){
+ if(reminders.enabled!=='on')return;
+ const now=new Date(),time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+ if(time!==reminders.time)return;
+ const k=dateKey(now),r=records[k],sent='work-calendar-reminder-'+k;
+ if(r&&['early','afternoon','night'].includes(r.type)&&!sessionStorage.getItem(sent)){
+  notify('Напоминание о смене','Сегодня: '+tr().types[types.indexOf(r.type)]);sessionStorage.setItem(sent,'1');
+ }
+}
+setInterval(checkReminder,30000);
+loadSelected();renderLanguage();renderNotifications();checkReminder();
+
+// Автоматическая проверка при каждом открытии приложения.
+// Нужен публичный GitHub-репозиторий с опубликованным Release.
+window.addEventListener('load',()=>checkForUpdates(false));
+</script>
+</body>
+</html>
